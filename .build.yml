@@ -1,0 +1,19 @@
+image: archlinux
+packages:
+  - cmake
+  - arm-none-eabi-gcc
+  - arm-none-eabi-newlib
+sources:
+  - https://git.sr.ht/~krystianch/pico-enc28j60
+tasks:
+  - sdk: |
+      git clone https://github.com/raspberrypi/pico-sdk.git
+      git clone --recurse-submodules https://github.com/raspberrypi/pico-extras.git
+  - setup: |
+      cd pico-enc28j60
+      mkdir build
+      cd build
+      cmake -DPICO_SDK_PATH=~/pico-sdk -DPICO_EXTRAS_PATH=~/pico-extras -DPICO_ENC28J60_EXAMPLES_ENABLED=true ..
+  - build: |
+      cd pico-enc28j60/build
+      make
