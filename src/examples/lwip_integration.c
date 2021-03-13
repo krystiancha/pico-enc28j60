@@ -28,13 +28,13 @@
 #define GATEWAY_ADDRESS IPADDR4_INIT_BYTES(192, 168, 1, 1)
 
 queue_t rx_queue;
-critical_section_t enc28j60_cs;
+critical_section_t spi_cs;
 enc28j60_t enc28j60 = {
         .spi = SPI,
         .cs_pin = CS_PIN,
         .mac_address = MAC_ADDRESS,
         .next_packet = 0,
-        .critical_section = &enc28j60_cs,
+        .critical_section = &spi_cs,
 };
 struct netif netif;
 
@@ -74,7 +74,7 @@ int main() {
     gpio_set_dir(CS_PIN, GPIO_OUT);
 
     queue_init(&rx_queue, sizeof(struct pbuf *), RX_QUEUE_SIZE);
-    critical_section_init(&enc28j60_cs);
+    critical_section_init(&spi_cs);
 
     lwip_init();
     const struct ip4_addr ipaddr = IP_ADDRESS;
