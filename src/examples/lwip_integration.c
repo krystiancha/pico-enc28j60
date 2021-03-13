@@ -1,23 +1,16 @@
-// Debug messages
-#define LWIP_DEBUG 1
-#define NETIF_DEBUG LWIP_DBG_ON
-#define TCP_DEBUG LWIP_DBG_ON
-#define TCPIP_DEBUG LWIP_DBG_ON
-#define UDP_DEBUG LWIP_DBG_ON
-
 #include <hardware/gpio.h>
 
 #include <pico/stdio.h>
 #include <pico/util/queue.h>
 
-#include <lwip/netif.h>
+#include "lwipopts.h"
 #include <lwip/init.h>
+#include <lwip/netif.h>
 #include <lwip/timeouts.h>
 
 #include <pico/enc28j60/enc28j60.h>
 #include <pico/enc28j60/ethernetif.h>
 
-#include "lwipopts.h"
 #include "tcpecho_raw.h"
 
 // Configuration
@@ -49,12 +42,7 @@ void eth_irq(uint gpio, uint32_t events) {
     enc28j60_isr_begin(&enc28j60);
     uint8_t flags = enc28j60_interrupt_flags(&enc28j60);
 
-    if (flags & ENC28J60_TXIF) {
-        LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: transmit completed\n"));
-    }
-
     if (flags & ENC28J60_PKTIF) {
-        LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: packet pending\n"));
         struct pbuf *packet = low_level_input(&netif);
         if (packet != NULL) {
             if (!queue_try_add(&rx_queue, &packet)) {
@@ -65,27 +53,6 @@ void eth_irq(uint gpio, uint32_t events) {
 
     if (flags & ENC28J60_TXERIE) {
         LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: transmit error\n"));
-    }
-
-    if (flags & (ENC28J60_TXIF | ENC28J60_TXERIF)) {
-        uint8_t status[7];
-        enc28j60_transfer_status(&enc28j60, status);
-        if (ENC28J60_TX_STATUS_BIT(status, 51)) { LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: Transmit VLAN Tagged Frame\n")); }
-        if (ENC28J60_TX_STATUS_BIT(status, 50)) { LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: Backpressure Applied\n")); }
-        if (ENC28J60_TX_STATUS_BIT(status, 49)) { LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: Transmit Pause Control Frame\n")); }
-        if (ENC28J60_TX_STATUS_BIT(status, 48)) { LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: Transmit Control Frame\n")); }
-        if (ENC28J60_TX_STATUS_BIT(status, 31)) { LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: Transmit Underrun\n")); }
-        if (ENC28J60_TX_STATUS_BIT(status, 30)) { LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: Transmit Giant\n")); }
-        if (ENC28J60_TX_STATUS_BIT(status, 29)) { LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: Transmit Late Collision\n")); }
-        if (ENC28J60_TX_STATUS_BIT(status, 28)) { LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: Transmit Excessive Collision\n")); }
-        if (ENC28J60_TX_STATUS_BIT(status, 27)) { LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: Transmit Excessive Defer\n")); }
-        if (ENC28J60_TX_STATUS_BIT(status, 26)) { LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: Transmit Packet Defer\n")); }
-        if (ENC28J60_TX_STATUS_BIT(status, 25)) { LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: Transmit Broadcast\n")); }
-        if (ENC28J60_TX_STATUS_BIT(status, 24)) { LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: Transmit Multicast\n")); }
-        if (ENC28J60_TX_STATUS_BIT(status, 23)) { LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: Transmit Done\n")); }
-        if (ENC28J60_TX_STATUS_BIT(status, 22)) { LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: Transmit Length Out of Range\n")); }
-        if (ENC28J60_TX_STATUS_BIT(status, 21)) { LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: Transmit Length Check Error\n")); }
-        if (ENC28J60_TX_STATUS_BIT(status, 20)) { LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: Transmit CRC Error\n")); }
     }
 
     if (flags & ENC28J60_RXERIE) {
@@ -118,7 +85,7 @@ int main() {
     netif_set_link_up(&netif);
 
     gpio_set_irq_enabled_with_callback(INT_PIN, GPIO_IRQ_EDGE_FALL, true, eth_irq);
-    enc28j60_interrupts(&enc28j60, ENC28J60_PKTIE | ENC28J60_TXIE | ENC28J60_TXERIE | ENC28J60_RXERIE);
+    enc28j60_interrupts(&enc28j60, ENC28J60_PKTIE | ENC28J60_TXERIE | ENC28J60_RXERIE);
 
     tcpecho_raw_init();
 

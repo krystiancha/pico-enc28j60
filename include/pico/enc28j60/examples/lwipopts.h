@@ -54,5 +54,17 @@
 #define LWIP_HTTPD_SSI                  0
 #define LWIP_HTTPD_SSI_INCLUDE_TAG      0
 
+#if 1
+#define LWIP_DEBUG 1
+#define NETIF_DEBUG                     LWIP_DBG_ON
+#define TCP_DEBUG                       LWIP_DBG_ON
+#define ETHARP_DEBUG                    LWIP_DBG_ON
+#define PBUF_DEBUG                      LWIP_DBG_OFF
+#define IP_DEBUG                        LWIP_DBG_OFF
+#define TCPIP_DEBUG                     LWIP_DBG_ON
+#define DHCP_DEBUG                      LWIP_DBG_OFF
+#define UDP_DEBUG                       LWIP_DBG_OFF
+#endif
+
 
 #endif /* __LWIPOPTS_H__ */
