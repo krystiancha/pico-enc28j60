@@ -29,6 +29,7 @@
 
 queue_t rx_queue;
 critical_section_t spi_cs;
+struct netif netif;
 enc28j60_t enc28j60 = {
         .spi = SPI,
         .cs_pin = CS_PIN,
@@ -36,7 +37,6 @@ enc28j60_t enc28j60 = {
         .next_packet = 0,
         .critical_section = &spi_cs,
 };
-struct netif netif;
 
 void eth_irq(uint gpio, uint32_t events) {
     enc28j60_isr_begin(&enc28j60);
@@ -76,10 +76,10 @@ int main() {
     queue_init(&rx_queue, sizeof(struct pbuf *), RX_QUEUE_SIZE);
     critical_section_init(&spi_cs);
 
-    lwip_init();
     const struct ip4_addr ipaddr = IP_ADDRESS;
     const struct ip4_addr netmask = NETWORK_MASK;
     const struct ip4_addr gw = GATEWAY_ADDRESS;
+    lwip_init();
     netif_add(&netif, &ipaddr, &netmask, &gw, &enc28j60, ethernetif_init, netif_input);
     netif_set_up(&netif);
     netif_set_link_up(&netif);
