@@ -8,22 +8,22 @@ Minimal enc28j60 library for use with the Pico SDK
 
 A low-level library that provides a configuration struct and functions for:
 
-* soft resetting the IC,
-* initializing the IC,
+* soft resetting, initializing and enabling packet reception,
 * ethernet packet reception,
-* ethernet packet transmission.
+* ethernet packet transmission,
+* interrupt handling.
 
 ## What it isn't
 
 TCP/IP stack, socket, HTTP implementation.
 
-BUT it includes example code of a [TCP echo server](tcp_echo.c) based on lwip.
+BUT it includes [example code](src/examples/lwip_integration.c) of integration with LWIP -- a tcp echo server
 
 ## Documentation
 
-See [include/pico/enc28j60.h](include/pico/enc28j60.h) for Doxygen style comments.
+See [include/pico/enc28j60.h](include/pico/enc28j60/enc28j60.h) for Doxygen style comments.
 
-See [tcp_echo.c](tcp_echo.c) for example program.
+See [lwip_integration.c](src/examples/lwip_integration.c) for an example program.
 
 ## Building the TCP echo example
 
