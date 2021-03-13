@@ -1,12 +1,13 @@
-#include "lwip/opt.h"
 #include "lwip/def.h"
-#include "lwip/mem.h"
-#include "lwip/pbuf.h"
-#include "lwip/stats.h"
-#include "lwip/snmp.h"
-#include "lwip/ethip6.h"
 #include "lwip/etharp.h"
+#include "lwip/ethip6.h"
+#include "lwip/mem.h"
+#include "lwip/opt.h"
+#include "lwip/pbuf.h"
+#include "lwip/snmp.h"
+#include "lwip/stats.h"
 #include "netif/ppp/pppoe.h"
+
 #include <pico/enc28j60/enc28j60.h>
 
 #define IFNAME0 'e'
