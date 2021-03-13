@@ -51,11 +51,11 @@ void eth_irq(uint gpio, uint32_t events) {
         }
     }
 
-    if (flags & ENC28J60_TXERIE) {
+    if (flags & ENC28J60_TXERIF) {
         LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: transmit error\n"));
     }
 
-    if (flags & ENC28J60_RXERIE) {
+    if (flags & ENC28J60_RXERIF) {
         LWIP_DEBUGF(NETIF_DEBUG, ("eth_irq: receive error\n"));
     }
 
