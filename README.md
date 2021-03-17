@@ -2,57 +2,90 @@
 
 [![builds.sr.ht status](https://builds.sr.ht/~krystianch/pico-enc28j60.svg)](https://builds.sr.ht/~krystianch/pico-enc28j60?)
 
-Minimal enc28j60 library for use with the Pico SDK
+enc28j60 driver and [lwIP](https://www.nongnu.org/lwip/) integration for the [Raspberry Pi Pico SDK](https://github.com/raspberrypi/pico-sdk) (RP2040 microcontroller).
 
-## What it is
+## Requirements
 
-A low-level library that provides a configuration struct and functions for:
+* [pico-sdk (Raspberry Pi Pico SDK)](https://github.com/raspberrypi/pico-sdk)
+* [pico-extras with lwIP submodule](https://github.com/raspberrypi/pico-sdk)
 
-* soft resetting, initializing and enabling packet reception,
-* ethernet packet reception,
-* ethernet packet transmission,
-* interrupt handling.
+Remember to clone with submodules:
 
-## What it isn't
+```bash
+git clone --recurse-submodules https://github.com/raspberrypi/pico-extras.git
+```
 
-TCP/IP stack, socket, HTTP implementation.
+Or initialize submodules after a regular clone:
 
-BUT it includes [example code](src/examples/lwip_integration.c) of integration with LWIP -- a tcp echo server
+```bash
+git clone https://github.com/raspberrypi/pico-extras.git
+cd pico-extras
+git submodule update --init --recursive
+```
 
-## Documentation
+## Usage
 
-See [include/pico/enc28j60.h](include/pico/enc28j60/enc28j60.h) for Doxygen style comments.
+You can follow these instructions to build a lwIP app.
+The aim of this short tutorial is to successfully ping the device.
 
-See [lwip_integration.c](src/examples/lwip_integration.c) for an example program.
+Clone this repository and the repositories mentioned in the [Requirements](#Requirements) section and note the clone paths.
 
-## Building the TCP echo example
+Create a new empty directory that your project will reside in and `cd` to it.
 
-The following assumes that you have [pico-sdk](https://github.com/raspberrypi/pico-sdk) and [pico-extras](https://github.com/raspberrypi/pico-extras) cloned to `~/.local/src`.
-Substitute your own paths below if your setup is different.
+```bash
+mkdir picoping
+cd picoping
+```
+
+Copy [src/examples/lwip_integration.c](src/examples/lwip_integration.c) and [include/pico/enc28j60/examples/lwipopts.h](include/pico/enc28j60/examples/lwipopts.h) and save it as `main.c` and `lwipopts.h` respectively in the new project root.
+
+Remove the `tcpecho_raw_init();` line before the main loop as well as `#include "tcpecho_raw.h"`, because we only want a minimal example running.
+Edit the configuration section in the same file to reflect your setup, paying extra attention to the static IP address, netmask and gateway address as this example app won't include support for DHCP (pico-extras do not support it yet).
+
+Copy [external/pico_enc28j60_import.cmake](external/pico_enc28j60_import.cmake), [pico_extras_import.cmake](pico_extras_import.cmake) and [pico_sdk_import.cmake](pico_sdk_import.cmake) to your project's root and create a `CMakeLists.txt` with the following contents:
+
+```cmake
+cmake_minimum_required(VERSION 3.19)
+
+include(pico_sdk_import.cmake)
+include(pico_extras_import.cmake)
+include(pico_enc28j60_import.cmake)
+
+project(picoping)
+
+set(CMAKE_C_STANDARD 11)
+
+pico_sdk_init()
+
+include_directories(.)
+
+add_executable(picoping main.c)
+target_link_libraries(picoping pico_stdlib lwip pico_enc28j60)
+pico_add_extra_outputs(picoping)
+```
+
+Now let's build it.
+
+Create a build directory and configure the project passing paths to required components to CMake.
 
 ```bash
 mkdir build
+
 cd build
-cmake -DPICO_SDK_PATH=~/.local/src/pico-sdk -DPICO_EXTRAS_PATH=~/.local/src/pico-extras -DPICO_ENC28J60_EXAMPLES_ENABLED=true ..
-make  # creates tcp_echo.uf2
+
+cmake \
+    -DPICO_SDK_PATH=/path/to/pico-sdk/ \
+    -DPICO_EXTRAS_PATH=/path/to/pico-extras/ \
+    -DPICO_ENC28J60_PATH=/path/to/pico-enc28j60/ \
+    ..
+
+make
 ```
 
-## Library usage
+The compilation process should succeed and you should have a `picoping.uf2` ready to load to your board.
 
-General library usage DOES NOT require [pico-extras](https://github.com/raspberrypi/pico-extras), just [pico-sdk](https://github.com/raspberrypi/pico-sdk).
+After loading and rebooting you should be able to ping the IP address that you specified in the static configuration and get a response.
+If this is not the case, check the configuration and UART as a lot of debug information is printed there.
 
-You can add pico-enc28j60 to your project similarly to the SDK (copying [external/pico_enc28j60_import.cmake](external/pico_enc28j60_import.cmake) into your project)
-having set the `PICO_ENC28J60_PATH` variable in your environment or via cmake variable.
-
-```cmake
-cmake_minimum_required(VERSION 3.12)
-
-# Pull in PICO SDK (must be before project)
-include(pico_sdk_import.cmake)
-
-# We also need PICO ENC28J60
-include(pico_enc28j60_import.cmake)
-
-project(example_project)
-set(CMAKE_C_STANDARD 11)
-```
+You can treat this app as a base for developing your own lwIP app.
+To make it easier, check out lwip-contrib as it contains examples such as tcp_echo_raw that are easy to integrate.
