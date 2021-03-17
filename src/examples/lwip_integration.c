@@ -64,14 +64,16 @@ void eth_irq(uint gpio, uint32_t events) {
 }
 
 int main() {
+    gpio_init_mask((1 << CS_PIN) | (1 << PICO_DEFAULT_LED_PIN));
+    gpio_set_dir_out_masked((1 << CS_PIN) | (1 << PICO_DEFAULT_LED_PIN));
+    gpio_put(PICO_DEFAULT_LED_PIN, true);
+
     stdio_init_all();
 
-    spi_init(spi0, SPI_BAUD);
     gpio_set_function(SCK_PIN, GPIO_FUNC_SPI);
     gpio_set_function(SI_PIN, GPIO_FUNC_SPI);
     gpio_set_function(SO_PIN, GPIO_FUNC_SPI);
-    gpio_init(CS_PIN);
-    gpio_set_dir(CS_PIN, GPIO_OUT);
+    spi_init(spi0, SPI_BAUD);
 
     queue_init(&rx_queue, sizeof(struct pbuf *), RX_QUEUE_SIZE);
     critical_section_init(&spi_cs);
@@ -100,5 +102,8 @@ int main() {
         }
 
         sys_check_timeouts();
+        gpio_put(PICO_DEFAULT_LED_PIN, false);
+        best_effort_wfe_or_timeout(make_timeout_time_ms(sys_timeouts_sleeptime()));
+        gpio_put(PICO_DEFAULT_LED_PIN, true);
     }
 }
