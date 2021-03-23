@@ -14,43 +14,43 @@
 /// ENC28J60 configuration
 typedef struct enc28j60 {
 
-    /// SPI bus
-    ///
-    /// SPI bus which has the ENC28J60.
-    /// Probably spi0 or spi1 from hardware/spi.h.
-    ///
-    /// The bus MUST be initialized before calling any enc28j60_* function.
-    /// Use spi_init and gpio_set_function.
-    spi_inst_t *spi;
+	/// SPI bus
+	///
+	/// SPI bus which has the ENC28J60.
+	/// Probably spi0 or spi1 from hardware/spi.h.
+	///
+	/// The bus MUST be initialized before calling any enc28j60_* function.
+	/// Use spi_init and gpio_set_function.
+	spi_inst_t *spi;
 
-    /// Chip Select pin
-    ///
-    /// This pin MUST be configured as output before calling any enc28j60_* function.
-    /// Use gpio_init and gpio_set_dir.
-    uint8_t cs_pin;
+	/// Chip Select pin
+	///
+	/// This pin MUST be configured as output before calling any enc28j60_* function.
+	/// Use gpio_init and gpio_set_dir.
+	uint8_t cs_pin;
 
-    /// MAC address of the device
-    ///
-    /// Example:
-    /// Address 1F:63:88:BC:39:87
-    /// would be set like this:
-    /// { 0x1F, 0x63, 0x88, 0xBC, 0x39, 0x87 }
-    uint8_t mac_address[6];
+	/// MAC address of the device
+	///
+	/// Example:
+	/// Address 1F:63:88:BC:39:87
+	/// would be set like this:
+	/// { 0x1F, 0x63, 0x88, 0xBC, 0x39, 0x87 }
+	uint8_t mac_address[6];
 
-    /// Critical section for IRQ safe mutual exclusion of the enc28j60 device
-    ///
-    /// If critical_section is set to non-NULL value, the critical section is entered (blocking) for the time of
-    /// executing every SPI command.
-    ///
-    /// If you use this library in a way that execution of a command can be interrupted (for example: main loop and
-    /// interrupt service routine), then set critical_section to an initialized critical section object (use
-    /// critical_section_init). Otherwise, remember to set this to NULL.
-    critical_section_t *critical_section;
+	/// Critical section for IRQ safe mutual exclusion of the enc28j60 device
+	///
+	/// If critical_section is set to non-NULL value, the critical section is entered (blocking) for the time of
+	/// executing every SPI command.
+	///
+	/// If you use this library in a way that execution of a command can be interrupted (for example: main loop and
+	/// interrupt service routine), then set critical_section to an initialized critical section object (use
+	/// critical_section_init). Otherwise, remember to set this to NULL.
+	critical_section_t *critical_section;
 
-    /// Address of the next packet in the receive buffer
-    ///
-    /// You shouldn't have to modify this, it is managed by the library.
-    uint16_t next_packet;
+	/// Address of the next packet in the receive buffer
+	///
+	/// You shouldn't have to modify this, it is managed by the library.
+	uint16_t next_packet;
 
 } enc28j60_t;
 
