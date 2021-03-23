@@ -40,7 +40,8 @@ struct enc28j60 enc28j60 = {
 	.critical_section = &spi_cs,
 };
 
-void eth_irq(uint gpio, uint32_t events)
+void
+eth_irq(uint gpio, uint32_t events)
 {
 	enc28j60_isr_begin(&enc28j60);
 	uint8_t flags = enc28j60_interrupt_flags(&enc28j60);
@@ -66,7 +67,8 @@ void eth_irq(uint gpio, uint32_t events)
 	enc28j60_isr_end(&enc28j60);
 }
 
-int main()
+int
+main()
 {
 	gpio_init_mask((1 << CS_PIN) | (1 << PICO_DEFAULT_LED_PIN));
 	gpio_set_dir_out_masked((1 << CS_PIN) | (1 << PICO_DEFAULT_LED_PIN));

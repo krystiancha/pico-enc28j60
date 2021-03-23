@@ -230,7 +230,8 @@ ethernetif_input(struct netif *netif)
  *			 ERR_MEM if private data couldn't be allocated
  *			 any other err_t on error
  */
-err_t ethernetif_init(struct netif *netif)
+err_t
+ethernetif_init(struct netif *netif)
 {
 	LWIP_ASSERT("netif != NULL", (netif != NULL));
 
