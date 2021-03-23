@@ -25,7 +25,7 @@ static void ethernetif_input(struct netif *netif);
 static void
 low_level_init(struct netif *netif)
 {
-	struct enc28j60 *eth = netif->state;
+	const struct enc28j60 *eth = netif->state;
 
 	/* set MAC hardware address length */
 	netif->hwaddr_len = ETHARP_HWADDR_LEN;
@@ -80,7 +80,7 @@ low_level_init(struct netif *netif)
 static err_t
 low_level_output(struct netif *netif, struct pbuf *p)
 {
-	struct enc28j60 *eth = netif->state;
+	const struct enc28j60 *eth = netif->state;
 	struct pbuf *q;
 
 	// Initiate transfer
@@ -128,7 +128,7 @@ low_level_output(struct netif *netif, struct pbuf *p)
  *			 NULL on memory error
  */
 struct pbuf *
-low_level_input(struct netif *netif)
+low_level_input(const struct netif *netif)
 {
 	struct enc28j60 *eth = netif->state;
 	struct pbuf *p, *q;
