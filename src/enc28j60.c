@@ -5,7 +5,8 @@
 
 #include <pico/enc28j60/enc28j60.h>
 
-void enc28j60_init(const struct enc28j60 *self) {
+void enc28j60_init(const struct enc28j60 *self)
+{
 	// Soft reset
 	enc28j60_write(self, ENC28J60_SRC | ENC28J60_SRC_ARG, NULL, 0);
 	sleep_ms(1);  // Errata issue 2
@@ -49,7 +50,8 @@ void enc28j60_init(const struct enc28j60 *self) {
 	enc28j60_switch_bank(self, prev_bank);
 }
 
-void enc28j60_transfer_init(const struct enc28j60 *self) {
+void enc28j60_transfer_init(const struct enc28j60 *self)
+{
 	uint8_t prev_bank = enc28j60_switch_bank(self, 0);
 	enc28j60_write_cr16(self, ENC28J60_ETXST, ENC28J60_RCV_BUFFER_SIZE);
 	enc28j60_write_cr16(self, ENC28J60_ETXND, ENC28J60_RCV_BUFFER_SIZE);
@@ -61,7 +63,8 @@ void enc28j60_transfer_init(const struct enc28j60 *self) {
 	enc28j60_switch_bank(self, prev_bank);
 }
 
-void enc28j60_transfer_write(const struct enc28j60 *self, const uint8_t *payload, size_t len) {
+void enc28j60_transfer_write(const struct enc28j60 *self, const uint8_t *payload, size_t len)
+{
 	uint8_t prev_bank = enc28j60_switch_bank(self, 0);
 
 	uint16_t tx_buffer_end = enc28j60_read_cr16(self, ENC28J60_ETXND);
@@ -71,7 +74,8 @@ void enc28j60_transfer_write(const struct enc28j60 *self, const uint8_t *payload
 	enc28j60_switch_bank(self, prev_bank);
 }
 
-void enc28j60_transfer_send(const struct enc28j60 *self) {
+void enc28j60_transfer_send(const struct enc28j60 *self)
+{
 	// Reset transmission logic, errata issue 12
 	enc28j60_bit_set(self, ENC28J60_ECON1, ENC28J60_TXRST);
 	enc28j60_bit_clear(self, ENC28J60_ECON1, ENC28J60_TXRST);
@@ -83,7 +87,8 @@ void enc28j60_transfer_send(const struct enc28j60 *self) {
 	}
 }
 
-void enc28j60_transfer_status(const struct enc28j60 *self, uint8_t *status) {
+void enc28j60_transfer_status(const struct enc28j60 *self, uint8_t *status)
+{
 	if (status == NULL) {
 		return;
 	}
@@ -94,7 +99,8 @@ void enc28j60_transfer_status(const struct enc28j60 *self, uint8_t *status) {
 	enc28j60_switch_bank(self, prev_bank);
 }
 
-uint16_t enc28j60_receive_init(struct enc28j60 *self) {
+uint16_t enc28j60_receive_init(struct enc28j60 *self)
+{
 	struct {
 		uint16_t next_packet;
 		uint16_t byte_count;
@@ -111,11 +117,13 @@ uint16_t enc28j60_receive_init(struct enc28j60 *self) {
 	return (header.status & 0x80) ? header.byte_count - 4 : 0;
 }
 
-void enc28j60_receive_read(const struct enc28j60 *self, uint8_t *payload, size_t len) {
+void enc28j60_receive_read(const struct enc28j60 *self, uint8_t *payload, size_t len)
+{
 	enc28j60_read(self, ENC28J60_RBM | ENC28J60_BM_ARG, payload, len);
 }
 
-void enc28j60_receive_ack(const struct enc28j60 *self) {
+void enc28j60_receive_ack(const struct enc28j60 *self)
+{
 	uint32_t crc;
 	enc28j60_read(self, ENC28J60_RBM | ENC28J60_BM_ARG, (uint8_t *) &crc, 4);
 
@@ -132,20 +140,24 @@ void enc28j60_receive_ack(const struct enc28j60 *self) {
 	enc28j60_switch_bank(self, prev_bank);
 }
 
-void enc28j60_interrupts(const struct enc28j60 *self, uint8_t flags) {
+void enc28j60_interrupts(const struct enc28j60 *self, uint8_t flags)
+{
 	enc28j60_bit_clear(self, ENC28J60_EIR, flags);
 	enc28j60_write_cr8(self, ENC28J60_EIE, flags | ENC28J60_INTIE);
 }
 
-void enc28j60_isr_begin(const struct enc28j60 *self) {
+void enc28j60_isr_begin(const struct enc28j60 *self)
+{
 	enc28j60_bit_clear(self, ENC28J60_EIE, ENC28J60_INTIE);
 }
 
-void enc28j60_isr_end(const struct enc28j60 *self) {
+void enc28j60_isr_end(const struct enc28j60 *self)
+{
 	enc28j60_bit_set(self, ENC28J60_EIE, ENC28J60_INTIE);
 }
 
-uint8_t enc28j60_interrupt_flags(const struct enc28j60 *self) {
+uint8_t enc28j60_interrupt_flags(const struct enc28j60 *self)
+{
 	uint8_t flags = enc28j60_read_cr8(self, ENC28J60_EIR, false);
 
 	// Errata
@@ -160,7 +172,8 @@ uint8_t enc28j60_interrupt_flags(const struct enc28j60 *self) {
 	return flags;
 }
 
-void enc28j60_interrupt_clear(const struct enc28j60 *self, uint8_t flags) {
+void enc28j60_interrupt_clear(const struct enc28j60 *self, uint8_t flags)
+{
 	if (!flags) {
 		flags = ENC28J60_PKTIF | ENC28J60_DMAIF | ENC28J60_LINKIF | ENC28J60_TXIF | ENC28J60_TXERIF | ENC28J60_RXERIF;
 	}
@@ -168,7 +181,8 @@ void enc28j60_interrupt_clear(const struct enc28j60 *self, uint8_t flags) {
 	enc28j60_bit_clear(self, ENC28J60_EIR, flags);
 }
 
-void enc28j60_read(const struct enc28j60 *config, uint8_t instruction, uint8_t *data, size_t len) {
+void enc28j60_read(const struct enc28j60 *config, uint8_t instruction, uint8_t *data, size_t len)
+{
 	if (config->critical_section != NULL) {
 		critical_section_enter_blocking(config->critical_section);
 	}
@@ -181,7 +195,8 @@ void enc28j60_read(const struct enc28j60 *config, uint8_t instruction, uint8_t *
 	}
 }
 
-void enc28j60_write(const struct enc28j60 *config, uint8_t instruction, const uint8_t *data, size_t len) {
+void enc28j60_write(const struct enc28j60 *config, uint8_t instruction, const uint8_t *data, size_t len)
+{
 	if (config->critical_section != NULL) {
 		critical_section_enter_blocking(config->critical_section);
 	}
@@ -194,14 +209,16 @@ void enc28j60_write(const struct enc28j60 *config, uint8_t instruction, const ui
 	}
 }
 
-uint8_t enc28j60_read_cr8(const struct enc28j60 *config, uint8_t address, bool skip_dummy) {
+uint8_t enc28j60_read_cr8(const struct enc28j60 *config, uint8_t address, bool skip_dummy)
+{
 	uint16_t data;
 	enc28j60_read(config, ENC28J60_RCR | address, (uint8_t *) &data, skip_dummy ? 2 : 1);
 
 	return (uint8_t) data;
 }
 
-uint16_t enc28j60_read_cr16(const struct enc28j60 *config, uint8_t address) {
+uint16_t enc28j60_read_cr16(const struct enc28j60 *config, uint8_t address)
+{
 	uint16_t data;
 	enc28j60_read(config, ENC28J60_RCR | address, (uint8_t *) &data, 1);
 	enc28j60_read(config, ENC28J60_RCR | (address + 1), (uint8_t *) (&data) + 1, 1);
@@ -209,24 +226,29 @@ uint16_t enc28j60_read_cr16(const struct enc28j60 *config, uint8_t address) {
 	return data;
 }
 
-void enc28j60_write_cr8(const struct enc28j60 *config, uint8_t address, uint8_t data) {
+void enc28j60_write_cr8(const struct enc28j60 *config, uint8_t address, uint8_t data)
+{
 	enc28j60_write(config, ENC28J60_WCR | address, &data, 1);
 }
 
-void enc28j60_write_cr16(const struct enc28j60 *config, uint8_t address, uint16_t data) {
+void enc28j60_write_cr16(const struct enc28j60 *config, uint8_t address, uint16_t data)
+{
 	enc28j60_write(config, ENC28J60_WCR | address, (uint8_t *) &data, 1);
 	enc28j60_write(config, ENC28J60_WCR | (address + 1), (uint8_t *) (&data) + 1, 1);
 }
 
-void enc28j60_bit_set(const struct enc28j60 *config, uint8_t address, uint8_t mask) {
+void enc28j60_bit_set(const struct enc28j60 *config, uint8_t address, uint8_t mask)
+{
 	enc28j60_write(config, ENC28J60_BFS | address , &mask, 1);
 }
 
-void enc28j60_bit_clear(const struct enc28j60 *config, uint8_t address, uint8_t mask) {
+void enc28j60_bit_clear(const struct enc28j60 *config, uint8_t address, uint8_t mask)
+{
 	enc28j60_write(config, ENC28J60_BFC | address , &mask, 1);
 }
 
-uint8_t enc28j60_switch_bank(const struct enc28j60 *config, uint8_t bank) {
+uint8_t enc28j60_switch_bank(const struct enc28j60 *config, uint8_t bank)
+{
 	uint8_t prev_bank = enc28j60_read_cr8(config, ENC28J60_ECON1, false) & 0x03;
 
 	enc28j60_bit_clear(config, ENC28J60_ECON1, 0x03);
@@ -235,7 +257,8 @@ uint8_t enc28j60_switch_bank(const struct enc28j60 *config, uint8_t bank) {
 	return prev_bank;
 }
 
-uint16_t enc28j60_read_phy(const struct enc28j60 *config, uint8_t address) {
+uint16_t enc28j60_read_phy(const struct enc28j60 *config, uint8_t address)
+{
 	uint8_t prev_bank = enc28j60_switch_bank(config, 2);
 
 	enc28j60_write_cr8(config, ENC28J60_MIREGADR, address);
@@ -249,7 +272,8 @@ uint16_t enc28j60_read_phy(const struct enc28j60 *config, uint8_t address) {
 	return data;
 }
 
-void enc28j60_write_phy(const struct enc28j60 *config, uint8_t address, uint16_t data) {
+void enc28j60_write_phy(const struct enc28j60 *config, uint8_t address, uint16_t data)
+{
 	uint8_t prev_bank = enc28j60_switch_bank(config, 2);
 	enc28j60_write_cr8(config, ENC28J60_MIREGADR, address);
 	enc28j60_write_cr16(config, ENC28J60_MIWR, data);
