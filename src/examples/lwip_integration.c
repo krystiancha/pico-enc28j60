@@ -30,7 +30,7 @@
 queue_t rx_queue;
 critical_section_t spi_cs;
 struct netif netif;
-enc28j60_t enc28j60 = {
+struct enc28j60 enc28j60 = {
 	.spi = SPI,
 	.cs_pin = CS_PIN,
 	.mac_address = MAC_ADDRESS,

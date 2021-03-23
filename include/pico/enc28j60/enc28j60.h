@@ -12,7 +12,7 @@
 #define ENC28J60_TX_STATUS_BIT(status, bit) (status[bit / 8] & 1 << (bit % 8))
 
 /// ENC28J60 configuration
-typedef struct enc28j60 {
+struct enc28j60 {
 
 	/// SPI bus
 	///
@@ -52,13 +52,13 @@ typedef struct enc28j60 {
 	/// You shouldn't have to modify this, it is managed by the library.
 	uint16_t next_packet;
 
-} enc28j60_t;
+};
 
 /// Soft reset, initialize and enable packet reception
-void enc28j60_init(enc28j60_t *self);
+void enc28j60_init(struct enc28j60 *self);
 
 /// Start the process of transmitting a single packet
-void enc28j60_transfer_init(enc28j60_t *self);
+void enc28j60_transfer_init(struct enc28j60 *self);
 
 /// Write data to the transmit buffer of the IC
 ///
@@ -67,23 +67,23 @@ void enc28j60_transfer_init(enc28j60_t *self);
 /// Write at most 1526 bytes, because that is the size of the transmit buffer.
 /// \param payload pointer to the application buffer
 /// \param len length of the data to be written
-void enc28j60_transfer_write(enc28j60_t *self, uint8_t *payload, size_t len);
+void enc28j60_transfer_write(struct enc28j60 *self, uint8_t *payload, size_t len);
 
 /// Transmits the packet that is currently in the transmit buffer
 ///
 /// This function blocks until the packet is transmitted or aborted due to an error.
-void enc28j60_transfer_send(enc28j60_t *self);
+void enc28j60_transfer_send(struct enc28j60 *self);
 
 /// Retrieves the status vector of last transmitted packet
 ///
 /// This library provides the ENC28J60_TX_STATUS_BIT macro for convenient access to single bits of the status vector.
 ///
 /// \param status a seven byte buffer, where the status will be written to
-void enc28j60_transfer_status(enc28j60_t *self, uint8_t *status);
+void enc28j60_transfer_status(struct enc28j60 *self, uint8_t *status);
 
 /// Start the process of receiving the next single packet from the receive buffer
 /// \return packet size in bytes
-uint16_t enc28j60_receive_init(enc28j60_t *self);
+uint16_t enc28j60_receive_init(struct enc28j60 *self);
 
 /// Read data from the receive buffer of the IC
 ///
@@ -91,52 +91,52 @@ uint16_t enc28j60_receive_init(enc28j60_t *self);
 /// Reading more data than the length returned from enc28j60_receive_init will probably ruin your day.
 /// \param payload a buffer to copy the data to
 /// \param len amount of bytes to read
-void enc28j60_receive_read(enc28j60_t *self, uint8_t *payload, size_t len);
+void enc28j60_receive_read(struct enc28j60 *self, uint8_t *payload, size_t len);
 
 /// End the packet reception process and free part of the receive buffer of the IC
-void enc28j60_receive_ack(enc28j60_t *self);
+void enc28j60_receive_ack(struct enc28j60 *self);
 
 /// Enable or disable interrupts on the INT pin of the IC
 ///
 /// Interrupts specified in the flags argument will be enabled, the rest of them will be disabled.
 ///
 /// \param flags mask built from ENC28J60_{PKTIE,DMAIE,LINKIE,TXIE,TXERIE,RXERIE}
-void enc28j60_interrupts(enc28j60_t *self, uint8_t flags);
+void enc28j60_interrupts(struct enc28j60 *self, uint8_t flags);
 
 /// Clears the EIE.INTIE bit
 ///
 /// Call at the beginning of the interrupt service routine to prevent missing a falling edge.
-void enc28j60_isr_begin(enc28j60_t *self);
+void enc28j60_isr_begin(struct enc28j60 *self);
 
 /// Sets the EIE.INTIE bit
 ///
 /// Call at the beginning of the interrupt service routine to prevent missing a falling edge.
-void enc28j60_isr_end(enc28j60_t *self);
+void enc28j60_isr_end(struct enc28j60 *self);
 
 /// Read the interrupt flags
 ///
 /// Call in the interrupt service routine to find out the reason for the interrupt.
 /// \return mask built from ENC28J60_{PKTIF,DMAIF,LINKIF,TXIF,TXERIF,RXERIF}
-uint8_t enc28j60_interrupt_flags(enc28j60_t *self);
+uint8_t enc28j60_interrupt_flags(struct enc28j60 *self);
 
 /// Clears interrupt flags
 ///
 /// \param flags mask built from interrupt flags (see enc28j60_interrupt_flags); if 0 then clears all flags
-void enc28j60_interrupt_clear(enc28j60_t *self, uint8_t flags);
+void enc28j60_interrupt_clear(struct enc28j60 *self, uint8_t flags);
 
 // --- LOW-LEVEL STUFF BELOW --- you probably won't need this
 
-void enc28j60_read(enc28j60_t *config, uint8_t instruction, uint8_t *data, size_t len);
-void enc28j60_write(enc28j60_t *config, uint8_t instruction, uint8_t *data, size_t len);
-uint8_t enc28j60_read_cr8(enc28j60_t *config, uint8_t address, bool skip_dummy);
-uint16_t enc28j60_read_cr16(enc28j60_t *config, uint8_t address);
-void enc28j60_write_cr8(enc28j60_t *config, uint8_t address, uint8_t data);
-void enc28j60_write_cr16(enc28j60_t *config, uint8_t address, uint16_t data);
-void enc28j60_bit_set(enc28j60_t *config, uint8_t address, uint8_t mask);
-void enc28j60_bit_clear(enc28j60_t *config, uint8_t address, uint8_t mask);
-uint8_t enc28j60_switch_bank(enc28j60_t *config, uint8_t bank);
-uint16_t enc28j60_read_phy(enc28j60_t *config, uint8_t address);
-void enc28j60_write_phy(enc28j60_t *config, uint8_t address, uint16_t data);
+void enc28j60_read(struct enc28j60 *config, uint8_t instruction, uint8_t *data, size_t len);
+void enc28j60_write(struct enc28j60 *config, uint8_t instruction, uint8_t *data, size_t len);
+uint8_t enc28j60_read_cr8(struct enc28j60 *config, uint8_t address, bool skip_dummy);
+uint16_t enc28j60_read_cr16(struct enc28j60 *config, uint8_t address);
+void enc28j60_write_cr8(struct enc28j60 *config, uint8_t address, uint8_t data);
+void enc28j60_write_cr16(struct enc28j60 *config, uint8_t address, uint16_t data);
+void enc28j60_bit_set(struct enc28j60 *config, uint8_t address, uint8_t mask);
+void enc28j60_bit_clear(struct enc28j60 *config, uint8_t address, uint8_t mask);
+uint8_t enc28j60_switch_bank(struct enc28j60 *config, uint8_t bank);
+uint16_t enc28j60_read_phy(struct enc28j60 *config, uint8_t address);
+void enc28j60_write_phy(struct enc28j60 *config, uint8_t address, uint16_t data);
 
 extern const uint16_t ENC28J60_RCV_BUFFER_SIZE;  // Reception buffer size
 
