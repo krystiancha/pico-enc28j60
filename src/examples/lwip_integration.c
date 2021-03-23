@@ -1,5 +1,7 @@
 #include <hardware/gpio.h>
 
+#include <hardware/spi.h>
+#include <pico/critical_section.h>
 #include <pico/stdio.h>
 #include <pico/util/queue.h>
 

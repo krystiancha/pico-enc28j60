@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <hardware/spi.h>
+#include <pico/critical_section.h>
 #include <pico/stdlib.h>
 
 #include <pico/enc28j60/enc28j60.h>

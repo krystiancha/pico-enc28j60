@@ -1,8 +1,8 @@
 #ifndef ENC28J60_H
 #define ENC28J60_H
 
-#include <hardware/spi.h>
-#include <pico/critical_section.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 /// Extract the value of a status bit from a packet transmit status vector
 ///
@@ -10,6 +10,9 @@
 /// \param status buffer containing the status vector
 /// \param bit bit index
 #define ENC28J60_TX_STATUS_BIT(status, bit) (status[bit / 8] & 1 << (bit % 8))
+
+struct spi_inst;
+struct critical_section;
 
 /// ENC28J60 configuration
 struct enc28j60 {
@@ -21,7 +24,7 @@ struct enc28j60 {
 	///
 	/// The bus MUST be initialized before calling any enc28j60_* function.
 	/// Use spi_init and gpio_set_function.
-	spi_inst_t *spi;
+	struct spi_inst *spi;
 
 	/// Chip Select pin
 	///
@@ -45,7 +48,7 @@ struct enc28j60 {
 	/// If you use this library in a way that execution of a command can be interrupted (for example: main loop and
 	/// interrupt service routine), then set critical_section to an initialized critical section object (use
 	/// critical_section_init). Otherwise, remember to set this to NULL.
-	critical_section_t *critical_section;
+	struct critical_section *critical_section;
 
 	/// Address of the next packet in the receive buffer
 	///
