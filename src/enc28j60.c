@@ -8,17 +8,17 @@
 void
 enc28j60_init(const struct enc28j60 *self)
 {
-	// Soft reset
+	/* Soft reset */
 	enc28j60_write(self, ENC28J60_SRC | ENC28J60_SRC_ARG, NULL, 0);
-	sleep_ms(1);  // Errata issue 2
+	sleep_ms(1); /* Errata issue 2 */
 
-	// LED setup
+	/* LED setup */
 	enc28j60_write_phy(self, ENC28J60_PHLCON, 0x3476);
 
 	uint8_t prev_bank = enc28j60_switch_bank(self, 0);
 
-	// MAC setup
-	enc28j60_write_cr16(self, ENC28J60_ERXST, 0);  // Start receive buffer in 0 as per errata issue 5
+	/* MAC setup */
+	enc28j60_write_cr16(self, ENC28J60_ERXST, 0);  /* Start receive buffer in 0 as per errata issue 5 */
 	enc28j60_write_cr16(self, ENC28J60_ERXND, ENC28J60_RCV_BUFFER_SIZE - 1);
 	enc28j60_write_cr16(self, ENC28J60_ERXRDPT, 0);
 
@@ -38,14 +38,14 @@ enc28j60_init(const struct enc28j60 *self)
 	enc28j60_write_cr16(self, ENC28J60_MAADR5, self->mac_address[4]);
 	enc28j60_write_cr16(self, ENC28J60_MAADR6, self->mac_address[5]);
 
-	// PHY setup
-	enc28j60_write_phy(self, ENC28J60_PHCON2, ENC28J60_HDLDIS);	 // Disable loopback as per errata issue 9
+	/* PHY setup */
+	enc28j60_write_phy(self, ENC28J60_PHCON2, ENC28J60_HDLDIS); /* Disable loopback as per errata issue 9 */
 
-	// Disable all filters
+	/* Disable all filters */
 	enc28j60_switch_bank(self, 1);
 	enc28j60_write_cr16(self, ENC28J60_ERXFCON, 0);
 
-	// Enable reception
+	/* Enable reception */
 	enc28j60_bit_set(self, ENC28J60_ECON1, ENC28J60_RXEN);
 
 	enc28j60_switch_bank(self, prev_bank);
@@ -80,7 +80,7 @@ enc28j60_transfer_write(const struct enc28j60 *self, const uint8_t *payload, siz
 void
 enc28j60_transfer_send(const struct enc28j60 *self)
 {
-	// Reset transmission logic, errata issue 12
+	/* Reset transmission logic, errata issue 12 */
 	enc28j60_bit_set(self, ENC28J60_ECON1, ENC28J60_TXRST);
 	enc28j60_bit_clear(self, ENC28J60_ECON1, ENC28J60_TXRST);
 
@@ -137,7 +137,7 @@ enc28j60_receive_ack(const struct enc28j60 *self)
 
 	enc28j60_bit_set(self, ENC28J60_ECON2, ENC28J60_PKTDEC);
 
-	// Free buffer & Errata issue 14
+	/* Free buffer & Errata issue 14 */
 	uint8_t prev_bank = enc28j60_switch_bank(self, 0);
 	if (self->next_packet == enc28j60_read_cr8(self, ENC28J60_ERXST, false)) {
 		enc28j60_write_cr16(self, ENC28J60_ERXRDPT, enc28j60_read_cr16(self, ENC28J60_ERXND));
@@ -172,7 +172,7 @@ enc28j60_interrupt_flags(const struct enc28j60 *self)
 {
 	uint8_t flags = enc28j60_read_cr8(self, ENC28J60_EIR, false);
 
-	// Errata
+	/* Errata */
 	uint8_t prev_bank = enc28j60_switch_bank(self, 1);
 	uint8_t packet_count = enc28j60_read_cr8(self, ENC28J60_EPKTCNT, false);
 	if (packet_count) {
@@ -274,7 +274,7 @@ enc28j60_switch_bank(const struct enc28j60 *config, uint8_t bank)
 	uint8_t prev_bank = enc28j60_read_cr8(config, ENC28J60_ECON1, false) & 0x03;
 
 	enc28j60_bit_clear(config, ENC28J60_ECON1, 0x03);
-	enc28j60_bit_set(config, ENC28J60_ECON1, bank & 0x03); // & 0x03 in case of a bad argument
+	enc28j60_bit_set(config, ENC28J60_ECON1, bank & 0x03); /* & 0x03 in case of a bad argument */
 
 	return prev_bank;
 }
@@ -286,7 +286,7 @@ enc28j60_read_phy(const struct enc28j60 *config, uint8_t address)
 
 	enc28j60_write_cr8(config, ENC28J60_MIREGADR, address);
 	enc28j60_bit_set(config, ENC28J60_MICMD, ENC28J60_MIIRD);
-	sleep_ms(1);  // TODO: polling
+	sleep_ms(1);  /* TODO: polling */
 	uint16_t data = (uint16_t) enc28j60_read_cr8(config, ENC28J60_MIRD, true) | ((uint16_t) enc28j60_read_cr8(config, ENC28J60_MIRD + 1, true) << 8);
 	enc28j60_bit_clear(config, ENC28J60_MICMD, ENC28J60_MIIRD);
 
@@ -302,42 +302,44 @@ enc28j60_write_phy(const struct enc28j60 *config, uint8_t address, uint16_t data
 	enc28j60_write_cr8(config, ENC28J60_MIREGADR, address);
 	enc28j60_write_cr16(config, ENC28J60_MIWR, data);
 
-	sleep_ms(1);  // TODO: polling
+	sleep_ms(1);  /* TODO: polling */
 
 	enc28j60_switch_bank(config, prev_bank);
 }
 
-// Reception buffer size
-//
-// The buffer address space ranges from 0 to 8191 (inclusive).
-// Space from 0 to rcv_buffer_size - 1 (inclusive) is used as the receive buffer.
-// Space from rcv_buffer_size to 8191 (inclusive) is used as the transmit buffer.
-// rcv_buffer_size should be an even number as recommended in the datasheet.
-// For the transmit buffer to only hold one packet set rcv_buffer_size to 6666 (lol).
-// This would leave 1526 bytes for the transmit buffer,
-// which is 1518 (max frame size) + 1 (control byte) + 8 (status vector)
+/*
+ * Reception buffer size
+ *
+ * The buffer address space ranges from 0 to 8191 (inclusive).
+ * Space from 0 to rcv_buffer_size - 1 (inclusive) is used as the receive buffer.
+ * Space from rcv_buffer_size to 8191 (inclusive) is used as the transmit buffer.
+ * rcv_buffer_size should be an even number as recommended in the datasheet.
+ * For the transmit buffer to only hold one packet set rcv_buffer_size to 6666 (lol).
+ * This would leave 1526 bytes for the transmit buffer,
+ * which is 1518 (max frame size) + 1 (control byte) + 8 (status vector)
+*/
 const uint16_t ENC28J60_RCV_BUFFER_SIZE = 6666;
 
-// Instructions
-const uint8_t ENC28J60_RCR = 0x00; // Read Control Register
-const uint8_t ENC28J60_RBM = 0x20; // Read Buffer Memory
-const uint8_t ENC28J60_WCR = 0x40; // Write Control Register
-const uint8_t ENC28J60_WBM = 0x60; // Write Buffer Memory
-const uint8_t ENC28J60_BFS = 0x80; // Bit Field Set
-const uint8_t ENC28J60_BFC = 0xA0; // Bit Field Clear
-const uint8_t ENC28J60_SRC = 0xE0; // System Reset Command (Soft Reset)
+/* Instructions */
+const uint8_t ENC28J60_RCR = 0x00; /* Read Control Register */
+const uint8_t ENC28J60_RBM = 0x20; /* Read Buffer Memory */
+const uint8_t ENC28J60_WCR = 0x40; /* Write Control Register */
+const uint8_t ENC28J60_WBM = 0x60; /* Write Buffer Memory */
+const uint8_t ENC28J60_BFS = 0x80; /* Bit Field Set */
+const uint8_t ENC28J60_BFC = 0xA0; /* Bit Field Clear */
+const uint8_t ENC28J60_SRC = 0xE0; /* System Reset Command (Soft Reset) */
 
-const uint8_t ENC28J60_BM_ARG = 0x1A; // RBM/WBM Argument
-const uint8_t ENC28J60_SRC_ARG = 0x1F; // SRC Argument
+const uint8_t ENC28J60_BM_ARG = 0x1A; /* RBM/WBM Argument */
+const uint8_t ENC28J60_SRC_ARG = 0x1F; /* SRC Argument */
 
-// Common Control Registers
+/* Common Control Registers */
 const uint8_t ENC28J60_EIE = 0x1B;
 const uint8_t ENC28J60_EIR = 0x1C;
 const uint8_t ENC28J60_ESTAT = 0x1D;
 const uint8_t ENC28J60_ECON2 = 0x1E;
 const uint8_t ENC28J60_ECON1 = 0x1F;
 
-// Bank 0 Control Registers
+/* Bank 0 Control Registers */
 const uint8_t ENC28J60_ERDPT = 0x00;
 const uint8_t ENC28J60_EWRPT = 0x02;
 const uint8_t ENC28J60_ETXST = 0x04;
@@ -351,7 +353,7 @@ const uint8_t ENC28J60_EDMAND = 0x12;
 const uint8_t ENC28J60_EDMADST = 0x14;
 const uint8_t ENC28J60_EDMACS = 0x06;
 
-// Bank 1 Control Registers
+/* Bank 1 Control Registers */
 const uint8_t ENC28J60_EHT = 0x00;
 const uint8_t ENC28J60_EPMM = 0x08;
 const uint8_t ENC28J60_EPMCS = 0x10;
@@ -359,7 +361,7 @@ const uint8_t ENC28J60_EPMO = 0x14;
 const uint8_t ENC28J60_ERXFCON = 0x18;
 const uint8_t ENC28J60_EPKTCNT = 0x19;
 
-// Bank 2 Control Registers
+/* Bank 2 Control Registers */
 const uint8_t ENC28J60_MACON1 = 0x00;
 const uint8_t ENC28J60_MACON3 = 0x02;
 const uint8_t ENC28J60_MACON4 = 0x03;
@@ -373,7 +375,7 @@ const uint8_t ENC28J60_MIREGADR = 0x14;
 const uint8_t ENC28J60_MIWR = 0x16;
 const uint8_t ENC28J60_MIRD = 0x18;
 
-// Bank 3 Control Registers
+/* Bank 3 Control Registers */
 const uint8_t ENC28J60_MAADR5 = 0x00;
 const uint8_t ENC28J60_MAADR6 = 0x01;
 const uint8_t ENC28J60_MAADR3 = 0x02;
@@ -389,7 +391,7 @@ const uint8_t ENC28J60_ECOCON = 0x15;
 const uint8_t ENC28J60_EFLOCON = 0x17;
 const uint8_t ENC28J60_EPAUS = 0x18;
 
-// PHY Registers
+/* PHY Registers */
 const uint8_t ENC28J60_PHCON1 = 0x00;
 const uint8_t ENC28J60_PHSTAT1 = 0x01;
 const uint8_t ENC28J60_PHID1 = 0x02;
@@ -400,7 +402,7 @@ const uint8_t ENC28J60_PHIE = 0x12;
 const uint8_t ENC28J60_PHIR = 0x13;
 const uint8_t ENC28J60_PHLCON = 0x14;
 
-// Register Bits
+/* Register Bits */
 const uint8_t ENC28J60_UCEN = 0x80;
 const uint8_t ENC28J60_ANDOR = 0x40;
 const uint8_t ENC28J60_CRCEN = 0x20;

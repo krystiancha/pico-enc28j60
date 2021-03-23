@@ -15,7 +15,7 @@
 
 #include "tcpecho_raw.h"
 
-// Configuration
+/* Configuration */
 #define SPI spi0
 #define SPI_BAUD 2000000
 #define SCK_PIN 2

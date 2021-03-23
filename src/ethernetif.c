@@ -83,7 +83,7 @@ low_level_output(struct netif *netif, struct pbuf *p)
 	const struct enc28j60 *eth = netif->state;
 	struct pbuf *q;
 
-	// Initiate transfer
+	/* Initiate transfer */
 	enc28j60_transfer_init(eth);
 
 	#if ETH_PAD_SIZE
@@ -97,7 +97,7 @@ low_level_output(struct netif *netif, struct pbuf *p)
 		enc28j60_transfer_write(eth, q->payload, q->len);
 	}
 
-	// signal that packet should be sent
+	/* signal that packet should be sent */
 	enc28j60_transfer_send(eth);
 
 	MIB2_STATS_NETIF_ADD(netif, ifoutoctets, p->tot_len);
@@ -165,7 +165,7 @@ low_level_input(const struct netif *netif)
 			enc28j60_receive_read(eth, q->payload, q->len);
 		}
 
-		// acknowledge that packet has been read
+		/* acknowledge that packet has been read */
 		enc28j60_receive_ack(eth);
 
 		MIB2_STATS_NETIF_ADD(netif, ifinoctets, p->tot_len);
